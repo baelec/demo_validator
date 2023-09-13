@@ -3,6 +3,7 @@ package async
 import validator.Severity
 import validator.ValidatorResult
 import java.util.*
+import java.util.Collections.synchronizedList
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
@@ -11,9 +12,9 @@ class ValidatorResultManager(
     executorService: ExecutorService,
     private val unexpectedExceptionHandler: (manager: ValidatorResultManager, throwable: Throwable) -> Unit
 ) {
-    private val executorService = BackPressureExecutorService(executorService)
-    private val tasks = Collections.synchronizedList<CompletableFuture<*>>(mutableListOf())
-    private val results = Collections.synchronizedList<ValidatorResult>(mutableListOf())
+    private val executorService = if (executorService !is BackPressureExecutorService) BackPressureExecutorService(executorService) else executorService
+    private val tasks = synchronizedList<CompletableFuture<*>>(mutableListOf())
+    private val results = synchronizedList<ValidatorResult>(mutableListOf())
 
     private var stopped = AtomicBoolean(false)
     val hasFailures: Boolean
